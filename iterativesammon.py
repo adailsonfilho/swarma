@@ -28,8 +28,18 @@ import numpy as np
 
 	"""
 
-def iterativesammon(data, framelapse = 1, init='pca', verbose = True):
+def iterativesammon(data, framelapse = 1, init='pca', verbose = True, distancefunc = None):
 	
+	"""
+	Args description:
+
+	- data = numpy array in the format [Epochs][Individuals][Dimension]
+	- framelapse = integer, a stepsize for not necessarialy use all epoch data, last epoch is always included
+	- init = is the option of initialization of first sammons mapping operation, can be 'pca' (principal component analysis) or 'random'
+	- verbose = flag for prompt the process details
+	- distancefunc = is a funcation that should receive two args 'distancefunc(a,b)' where a and b are the same numpy array of an epoch, and must return a distance matrix, if none is give euclidian distance will be used
+	"""
+
 	assert type(data) == type(np.array([]))
 	
 	reduced = np.array([])
@@ -47,9 +57,9 @@ def iterativesammon(data, framelapse = 1, init='pca', verbose = True):
 				print('Sammon procedure - Log Epoch:',i,'of',(len(data)-1))
 		
 			if len(reduced) == 0 :
-				[reduced, errors] = sammon(epoch,display=0,init=init)
+				[reduced, errors] = sammon(epoch,display=0,init=init, distancefunc=distance)
 			else:
-				[reduced, errors] = sammon(epoch,display=0,init=reduced)
+				[reduced, errors] = sammon(epoch,display=0,init=reduced, distancefunc=distancefunc)
 		else:
 			reduced = epoch
 			errors = 0

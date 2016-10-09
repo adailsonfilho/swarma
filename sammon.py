@@ -1,4 +1,4 @@
-def sammon(x, n = 2, display = 2, inputdist = 'raw', maxhalves = 20, maxiter = 500, tolfun = 1e-9, init = 'pca'):
+def sammon(x, n = 2, display = 2, inputdist = 'raw', maxhalves = 20, maxiter = 500, tolfun = 1e-9, init = 'pca', distancefunc = None):
 
 	#from scipy.spatial.distance import pdist, squareform
 	import numpy as np
@@ -70,12 +70,15 @@ def sammon(x, n = 2, display = 2, inputdist = 'raw', maxhalves = 20, maxiter = 5
 
 		return d
 
+	if distancefunc is None:
+		distancefunc = euclid
+
 	# Create distance matrix unless given by parameters
 	if inputdist == 'distance':
 		D = x
 	else:
 		#D = squareform(pdist(x, metric='cityblock'))
-		D = euclid(x,x)
+		D = distancefunc(x,x)
 
 	# Remaining initialisation
 	N = x.shape[0] # hmmm, shape[1]?
@@ -92,7 +95,7 @@ def sammon(x, n = 2, display = 2, inputdist = 'raw', maxhalves = 20, maxiter = 5
 		y = init
 	one = np.ones([N,n])
 	#d = squareform(pdist(y, metric='cityblock')) + np.eye(N)
-	d = euclid(y,y) + np.eye(N)
+	d = distancefunc(y,y) + np.eye(N)
 	dinv = 1. / d # Returns inf where d = 0. 
 	dinv[np.isinf(dinv)] = 0 # Fix by replacing inf with 0 (default Matlab behaviour).
 	delta = D-d 
@@ -118,7 +121,7 @@ def sammon(x, n = 2, display = 2, inputdist = 'raw', maxhalves = 20, maxiter = 5
 		for j in range(maxhalves):
 			s_reshape = s.reshape(2,int(len(s)/2)).T
 			y = y_old + s_reshape
-			d = euclid(y, y) + np.eye(N)
+			d = distancefunc(y, y) + np.eye(N)
 			dinv = 1 / d # Returns inf where D = 0. 
 			dinv[np.isinf(dinv)] = 0 # Fix by replacing inf with 0 (default Matlab behaviour).
 			delta = D - d
