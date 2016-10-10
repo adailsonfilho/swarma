@@ -57,7 +57,7 @@ def iterativesammon(data, framelapse = 1, init='pca', verbose = True, distancefu
 				print('Sammon procedure - Log Epoch:',i,'of',(len(data)-1))
 		
 			if len(reduced) == 0 :
-				[reduced, errors] = sammon(epoch,display=0,init=init, distancefunc=distance)
+				[reduced, errors] = sammon(epoch,display=0,init=init, distancefunc=distancefunc)
 			else:
 				[reduced, errors] = sammon(epoch,display=0,init=reduced, distancefunc=distancefunc)
 		else:

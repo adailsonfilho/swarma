@@ -21,7 +21,7 @@ def normalizeEvolutiveData(data, fitness,dimensions_boundaries=None, fitness_bou
 	- fitness_boundaries:
 
 	Same idea that the last parameter, but is only one dict in the form {'min': <VALUE>, 'max': <VALUE>}
-	"""
+	""" 
 
 	E = data.shape[0]
 	I = data.shape[1]
