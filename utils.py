@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import ipdb
 
 def normalizeEvolutiveData(data, fitness,dimensions_boundaries=None, fitness_boundaries=None):
 
@@ -57,9 +58,20 @@ def normalizeEvolutiveData(data, fitness,dimensions_boundaries=None, fitness_bou
 
 def evolutiveReader(filename):
 
-	with open(filename,'r') as dotswarm:
+	with open(filename,'r', encoding='utf-8') as dotswarm:
 		json_str = dotswarm.read()
 		swarm_json = json.loads(json_str)
+
+	E = swarm_json['header']['epochs']
+	I = swarm_json['header']['individuals']
+	D = swarm_json['header']['dimension']
+
+	print(type(swarm_json['data']))
+	print(type(swarm_json['data'][0]))
+	print(type(swarm_json['data'][0][0]))
+	print(type(swarm_json['data'][0][0][0]))
+
+	ipdb.set_trace()
 
 	data = np.array(swarm_json['data'])
 	fitness = np.array(swarm_json['fitness'])
@@ -75,50 +87,83 @@ Class for creat log of the optimization algorithm
 
 class EvolutiveLogger:
 
-	def __init__(self):
+
+	def __init__(self, name, objective):
+
+		assert(objective == 'minimize' or 'maximize')
+
+		self.name = name
+		self.objective = objective
 		self.data = []
 		self.fitness = []
 		self.current_epoch = 0
 
-		#epochs control
-		self.data_acc = []
-		self.fitness_acc = []
+		self.data.insert(self.current_epoch,[])
+		self.fitness.insert(self.current_epoch,[])
+
 	
 	def append_individual(self, features, fitness, epoch):
 
+		#não pode setar valores de epocas passadas
+		assert(epoch >= self.current_epoch)
+
+		#se for nova epoca
 		if epoch > self.current_epoch:
 
-			#salva dados da epoca passada
-			self.data.append(self.data_acc)
-			self.fitness.append(self.fitness_acc)
-
-			#prepara para nova epoca
-			self.data_acc = []
-			self.fitness_acc = []
-
+			self.data.insert(epoch,[])
+			self.fitness.insert(epoch,[])
 			self.current_epoch = epoch
 
-		#salva dados de entrada de novo individuo
-		self.data_acc.append(list(features))
-		self.fitness_acc.append(fitness)
+		self.data[epoch].append([a.item() for a in features])
+		self.fitness[epoch].append(fitness.item())
+
+		# if epoch > self.current_epoch:
+
+		# 	#salva dados da epoca passada
+		# 	self.data.append(self.data_acc)
+		# 	self.fitness.append(self.fitness_acc)
+
+		# 	#prepara para nova epoca
+		# 	self.data_acc = []
+		# 	self.fitness_acc = []
+
+		# 	self.current_epoch = epoch
+
+		# #salva dados de entrada de novo individuo
+		# self.data_acc.append(list(features))
+		# self.fitness_acc.append(fitness)
 
 	def save_log(self, filename, data_only=False):
+
+		E = len(self.data)
+		I = len(self.data[0])
+		D = len(self.data[0][0])
 
 		log = {}
 		if not data_only:
 			header = {
-				'dimension': len(self.data[0][0]),
-				'epochs': len(self.data[0])
+				'dimension': D,
+				'individuals': I,
+				'epochs': E,
+				'objective':self.objective,
+				'name':self.name
+
 			}
 			log['header'] = header
+
+		
 
 		log["data"] = np.array(self.data).tolist()
 		log["fitness"] = np.array(self.fitness).tolist()
 
+		#garantir que dados estão em formatos nativos de python
+		# log['data'] = [[[e.item() for e in individual] for individual in epoch] for epoch in self.data]
+		# log['fitness'] = [[e.item() for e  in epoch] for epoch in self.fitness]
+
 		if not filename.endswith('.swarm'):
 			filename = filename +'.swarm'
 
-		with open(filename,'w') as log_file:
+		with open(filename,'w', encoding='utf-8') as log_file:
 			json_log = json.dumps(log)
 			log_file.write(json_log)
 
